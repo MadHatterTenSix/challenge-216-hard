@@ -133,19 +133,23 @@ public final class Game {
       }
 
       /* Display winners. */
+      boolean winningHandCounted = false;
       System.out.println("\nWinners: ");
       listOfWinners = getWinners();
       for (int i = 0; i < listOfWinners.size(); i++) {
         System.out.println(players.get(listOfWinners.get(i)).getName());
         wins[listOfWinners.get(i)]++;
         Rank rank = new Rank(communityCards, players.get(listOfWinners.get(i)).getHand());
-        if (listOfWinningHands.indexOf(rank.toMethodString()) == -1) {
-          listOfWinningHands.add(rank.toMethodString());
-          occurencesOfWinningHands.add(1);
-        }
-        else {
-          int index = listOfWinningHands.indexOf(rank.toMethodString());
-          occurencesOfWinningHands.set(index, occurencesOfWinningHands.get(index)+1);
+        if (!winningHandCounted) {
+          if (listOfWinningHands.indexOf(rank.toMethodString()) == -1) {
+            listOfWinningHands.add(rank.toMethodString());
+            occurencesOfWinningHands.add(1);
+          }
+          else {
+            int index = listOfWinningHands.indexOf(rank.toMethodString());
+            occurencesOfWinningHands.set(index, occurencesOfWinningHands.get(index)+1);
+          }
+          winningHandCounted = true;
         }
       }
 
