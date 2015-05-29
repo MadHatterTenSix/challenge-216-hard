@@ -104,7 +104,7 @@ public final class Game {
       /* CPUs decide whether they want to fold or not. */
       for (int i = 0; i < players.size(); i++) {
         Rank rank = new Rank(communityCards, players.get(i).getHand());
-        if (rank.getDegree() >= 4) {
+        if (rank.getDegree() >= 8) {
           if (random.nextInt(100) >= 30) {
             players.get(i).fold();
             System.out.println(players.get(i).getName() + " has folded.");
