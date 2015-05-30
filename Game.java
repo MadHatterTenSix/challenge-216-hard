@@ -17,44 +17,48 @@ public final class Game {
   private Deck deck;
   private ArrayList<Player> players; /* this list includes CPU players */
   private ArrayList<Card> communityCards;
-  private Scanner in;
 
   public Game() {
     deck           = new Deck();
     players        = new ArrayList<>();
     communityCards = new ArrayList<>();
-    in             = new Scanner(System.in);
   }
 
   public void start() {
 
     int numberOfPlayers;
     int numberOfGames;
-    int numberOfGamesPlayed = 0;
+    int numberOfGamesPlayed;
+    int numberOfTimesBestHandWasWinningHand;
     int[] wins = new int[8];
-    int numberOfTimesBestHandsWon = 0;
     ArrayList<Integer> listOfWinners = new ArrayList<>();
-    ArrayList<Integer> listOfUnfoldedWinners = new ArrayList<>();
+    ArrayList<Integer> listOfAllWinners = new ArrayList<>();
     ArrayList<String> listOfWinningHands = new ArrayList<>();
     ArrayList<Integer> occurencesOfWinningHands = new ArrayList<>();
     Random random = new Random();
+    Scanner in;
 
+    in = new Scanner(System.in);
     /* Read number of players. */
     numberOfPlayers = 0;
     while (numberOfPlayers < MIN_PLAYERS || numberOfPlayers > MAX_PLAYERS) {
       System.out.print("How many players ("
         + MIN_PLAYERS + "-"
         + MAX_PLAYERS + ")? ");
-      numberOfPlayers = in.nextInt();
+      numberOfPlayers = Integer.parseInt(in.nextLine());
     }
     /* Read number of games to be played. */
     numberOfGames = 0;
     while (numberOfGames < 1) {
       System.out.print("How many games should we simulate? ");
-      numberOfGames = in.nextInt();
+      numberOfGames = Integer.parseInt(in.nextLine());
     }
     System.out.println("");
+//    numberOfPlayers = 8;
+//    numberOfGames = 1000;
+
     numberOfGamesPlayed = numberOfGames;
+    numberOfTimesBestHandWasWinningHand = 0;
 
     for (int i = 0; i < 8; i++) {
       wins[i] = 0;
@@ -62,13 +66,13 @@ public final class Game {
 
     for (int n = 0; n < numberOfGames; n++) {
 
+      System.out.println("Starting new game...\n");
+
       players.clear();
       communityCards.clear();
-      listOfWinners.clear();
-      listOfUnfoldedWinners.clear();
 
-  //    /* Add human player. */
-  //    addPlayer(Player.Type.HUMAN, "");
+      /* Add human player. */
+//      addPlayer(Player.Type.HUMAN, "");
 
       /* Add CPU players. */
       for (int i = 0; i < numberOfPlayers; i++) {
@@ -105,7 +109,7 @@ public final class Game {
       for (int i = 0; i < players.size(); i++) {
         Rank rank = new Rank(communityCards, players.get(i).getHand());
         if (rank.getDegree() >= 8) {
-          if (random.nextInt(100) >= 30) {
+          if (random.nextInt(100) >= 50) {
             players.get(i).fold();
             System.out.println(players.get(i).getName() + " has folded.");
           }
@@ -136,17 +140,17 @@ public final class Game {
       boolean winningHandCounted = false;
       System.out.println("\nWinners: ");
       listOfWinners = getWinners();
-      for (int i = 0; i < listOfWinners.size(); i++) {
-        System.out.println(players.get(listOfWinners.get(i)).getName());
-        wins[listOfWinners.get(i)]++;
-        Rank rank = new Rank(communityCards, players.get(listOfWinners.get(i)).getHand());
+      for (int winner : listOfWinners) {
+        wins[winner]++;
+        System.out.println(players.get(winner).getName());
+        Rank rank = new Rank(communityCards, players.get(winner).getHand());
         if (!winningHandCounted) {
-          if (listOfWinningHands.indexOf(rank.toMethodString()) == -1) {
-            listOfWinningHands.add(rank.toMethodString());
+          if (listOfWinningHands.indexOf(rank.getDegreeString()) == -1) {
+            listOfWinningHands.add(rank.getDegreeString());
             occurencesOfWinningHands.add(1);
           }
           else {
-            int index = listOfWinningHands.indexOf(rank.toMethodString());
+            int index = listOfWinningHands.indexOf(rank.getDegreeString());
             occurencesOfWinningHands.set(index, occurencesOfWinningHands.get(index)+1);
           }
           winningHandCounted = true;
@@ -154,29 +158,31 @@ public final class Game {
       }
 
       /* Number of times the best hand equals the highest hand. */
-      listOfUnfoldedWinners = getUnfoldedWinners();
+      listOfAllWinners = getAllWinners();
       if (listOfWinners.size() > 0) {
-        Rank rank = new Rank(communityCards, players.get(listOfWinners.get(0)).getHand());
-        for (int i = 0; i < listOfUnfoldedWinners.size(); i++) {
-          Rank rank2 = new Rank(communityCards, players.get(listOfUnfoldedWinners.get(i)).getHand());
-          if (rank.toMethodString().equalsIgnoreCase(rank2.toMethodString())
-              && i < listOfWinners.size()
-              && i != listOfWinners.get(i)) {
-            numberOfTimesBestHandsWon++;
-          }
+        Rank winningRank = new Rank(communityCards, players.get(listOfWinners.get(0)).getHand());
+        Rank allRank = new Rank(communityCards, players.get(listOfAllWinners.get(0)).getHand());
+        if (winningRank.toString().equalsIgnoreCase(allRank.toString())) {
+          numberOfTimesBestHandWasWinningHand++;
         }
       }
       else {
         numberOfGamesPlayed--;
-        Rank rank = new Rank(communityCards, players.get(listOfUnfoldedWinners.get(0)).getHand());
-        if (listOfWinningHands.indexOf(rank.toMethodString()) == -1) {
-          listOfWinningHands.add(rank.toMethodString());
-          occurencesOfWinningHands.add(1);
-        }
-        else {
-          int index = listOfWinningHands.indexOf(rank.toMethodString());
-          occurencesOfWinningHands.set(index, occurencesOfWinningHands.get(index)+1);
-        }
+//          /*
+//           *  START - Uncomment this section to see most common highest hand.
+//           */
+//        Rank rank = new Rank(communityCards, players.get(listOfAllWinners.get(0)).getHand());
+//        if (listOfWinningHands.indexOf(rank.getDegreeString()) == -1) {
+//          listOfWinningHands.add(rank.getDegreeString());
+//          occurencesOfWinningHands.add(1);
+//        }
+//        else {
+//          int index = listOfWinningHands.indexOf(rank.getDegreeString());
+//          occurencesOfWinningHands.set(index, occurencesOfWinningHands.get(index)+1);
+//        }
+//          /*
+//           *  END - Uncomment this section to see most common highest hand.
+//           */
       }
 
       System.out.println("");
@@ -184,20 +190,21 @@ public final class Game {
     }
 
     /* Print report. */
-    System.out.println("\nSimulation report:");
-    System.out.println("Total number of games with winners: " + numberOfGamesPlayed);
-    System.out.println("Total wins for each player: ");
+    System.out.println("----- Simulation Report -----");
+    System.out.println("Number of total rounds/games played out: " + numberOfGamesPlayed);
+    System.out.println("Number of wins-losses for each player:");
     for (int i = 0; i < players.size(); i++) {
-      double percent = (double)wins[i] / (double)numberOfGamesPlayed * (double)100;
-      System.out.print("  " + players.get(i).getName() + ": " + wins[i]);
+      double percent = (double)wins[i] / (double)numberOfGames * (double)100;
+      System.out.print("  " + players.get(i).getName() + ": " + wins[i] + "-" + (numberOfGames-wins[i]));
       System.out.printf(" (%.1f%%)\n", percent);
     }
-    System.out.println("Number of times the best hand was the highest hand: " + numberOfTimesBestHandsWon);
+    System.out.println("Number of times best hand was highest hand: "+ numberOfTimesBestHandWasWinningHand);
     System.out.println("Winning hand count: ");
     for (int i = 0; i < occurencesOfWinningHands.size(); i++) {
       System.out.printf("%8d  ", occurencesOfWinningHands.get(i));
       System.out.println(listOfWinningHands.get(i));
     }
+
   }
 
   public void addPlayer(Player.Type type, String name) {
@@ -214,25 +221,10 @@ public final class Game {
     players.add(new Player(type, newName));
   }
 
-  public void removePlayer(int id) {
-    if (id >= 0 && id < players.size()) {
-      players.remove(id);
-    }
-  }
-
-  public void removePlayer(String name) {
-    for (int i = 0; i < players.size(); i++) {
-      if (players.get(i).getName().equalsIgnoreCase(name)) {
-        players.remove(i);
-        break;
-      }
-    }
-  }
-
   public void printCommunityCards() {
     String msg = "";
-    for (int i = 0; i < communityCards.size(); i++) {
-      msg += communityCards.get(i).toString() + " ";
+    for (Card card : communityCards) {
+      msg += card.toString() + " ";
     }
     System.out.println(msg);
   }
@@ -246,8 +238,8 @@ public final class Game {
   }
 
   public void printPlayersCards() {
-    for (int i = 0; i < players.size(); i++) {
-      players.get(i).printHand();
+    for (Player player : players) {
+      player.printHand();
     }
   }
 
@@ -267,13 +259,81 @@ public final class Game {
     }
   }
 
-  private ArrayList<Integer> getWinners() {
+  private ArrayList<Integer> getAllWinners() {
     int x;
-    ArrayList<Integer> listOfWinners = new ArrayList<>();
     int lowestDegree;
     int tmpDegree;
     Rank highestRank;
     Rank tmpRank;
+    ArrayList<Integer> listOfWinners = new ArrayList<>();
+
+    x = 0;
+
+    lowestDegree = new Rank(communityCards, players.get(x).getHand()).getDegree();
+    highestRank = new Rank(communityCards, players.get(x).getHand());
+    listOfWinners.add(x);
+
+    for (int i = x+1; i < players.size(); i++) {
+      tmpRank = new Rank(communityCards, players.get(i).getHand());
+      tmpDegree = tmpRank.getDegree();
+
+      /* Current player with highest hand. */
+      if (tmpDegree < lowestDegree) {
+        listOfWinners.clear();
+        listOfWinners.add(i);
+        lowestDegree = tmpDegree;
+        highestRank = tmpRank;
+      }
+      /* Tie with Straights? */
+      else if (tmpDegree == lowestDegree && lowestDegree == 5) {
+        /* Include comparisons of 1-5 straight vs regular straight.
+         * In this case we need to compare the lowest cards because Ace will be the highest as
+         * a false positive.
+         */
+        if (Rank.getLowestCard(tmpRank.getCards()).getValue() > Rank.getLowestCard(highestRank.getCards()).getValue()) {
+          listOfWinners.clear();
+          listOfWinners.add(i);
+          lowestDegree = tmpDegree;
+          highestRank = tmpRank;
+        }
+      }
+      /* Tie? */
+      else if (tmpDegree == lowestDegree) {
+        if (tmpRank.getCards().get(0).getValue() > highestRank.getCards().get(0).getValue()) {
+          listOfWinners.clear();
+          listOfWinners.add(i);
+          lowestDegree = tmpDegree;
+          highestRank = tmpRank;
+        }
+        else if (tmpRank.getCards().get(0).getValue() == highestRank.getCards().get(0).getValue()) {
+          if (tmpRank.getCards().size() >= 4 && highestRank.getCards().size() >= 4) {
+            if (tmpRank.getCards().get(3).getValue() > highestRank.getCards().get(3).getValue()) {
+              listOfWinners.clear();
+              listOfWinners.add(i);
+              lowestDegree = tmpDegree;
+              highestRank = tmpRank;
+            }
+            else if (tmpRank.getCards().get(3).getValue() == highestRank.getCards().get(3).getValue()) {
+              listOfWinners.add(i);
+            }
+          }
+          else {
+            listOfWinners.add(i);
+          }
+        }
+      }
+    }
+
+    return listOfWinners;
+  }
+
+  private ArrayList<Integer> getWinners() {
+    int x;
+    int lowestDegree;
+    int tmpDegree;
+    Rank highestRank;
+    Rank tmpRank;
+    ArrayList<Integer> listOfWinners = new ArrayList<>();
 
     /* Find first player that hasn't folded. */
     for (x = 0; x < players.size(); x++) {
@@ -302,6 +362,19 @@ public final class Game {
           lowestDegree = tmpDegree;
           highestRank = tmpRank;
         }
+        /* Tie with Straights? */
+        else if (tmpDegree == lowestDegree && lowestDegree == 5) {
+          /* Include comparisons of 1-5 straight vs regular straight.
+           * In this case we need to compare the lowest cards because Ace will be the highest as
+           * a false positive.
+           */
+          if (Rank.getLowestCard(tmpRank.getCards()).getValue() > Rank.getLowestCard(highestRank.getCards()).getValue()) {
+            listOfWinners.clear();
+            listOfWinners.add(i);
+            lowestDegree = tmpDegree;
+            highestRank = tmpRank;
+          }
+        }
         /* Tie? */
         else if (tmpDegree == lowestDegree) {
           if (tmpRank.getCards().get(0).getValue() > highestRank.getCards().get(0).getValue()) {
@@ -328,61 +401,6 @@ public final class Game {
           }
         }
       }
-    }
-
-    return listOfWinners;
-  }
-
-  private ArrayList<Integer> getUnfoldedWinners() {
-    int x;
-    ArrayList<Integer> listOfWinners = new ArrayList<>();
-    int lowestDegree;
-    int tmpDegree;
-    Rank highestRank;
-    Rank tmpRank;
-
-    x = 0;
-
-    lowestDegree = new Rank(communityCards, players.get(x).getHand()).getDegree();
-    highestRank = new Rank(communityCards, players.get(x).getHand());
-    listOfWinners.add(x);
-
-    for (int i = x+1; i < players.size(); i++) {
-        tmpRank = new Rank(communityCards, players.get(i).getHand());
-        tmpDegree = tmpRank.getDegree();
-
-        /* Current player with highest hand. */
-        if (tmpDegree < lowestDegree) {
-          listOfWinners.clear();
-          listOfWinners.add(i);
-          lowestDegree = tmpDegree;
-          highestRank = tmpRank;
-        }
-        /* Tie? */
-        else if (tmpDegree == lowestDegree) {
-          if (tmpRank.getCards().get(0).getValue() > highestRank.getCards().get(0).getValue()) {
-            listOfWinners.clear();
-            listOfWinners.add(i);
-            lowestDegree = tmpDegree;
-            highestRank = tmpRank;
-          }
-          else if (tmpRank.getCards().get(0).getValue() == highestRank.getCards().get(0).getValue()) {
-            if (tmpRank.getCards().size() >= 4 && highestRank.getCards().size() >= 4) {
-              if (tmpRank.getCards().get(3).getValue() > highestRank.getCards().get(3).getValue()) {
-                listOfWinners.clear();
-                listOfWinners.add(i);
-                lowestDegree = tmpDegree;
-                highestRank = tmpRank;
-              }
-              else if (tmpRank.getCards().get(3).getValue() == highestRank.getCards().get(3).getValue()) {
-                listOfWinners.add(i);
-              }
-            }
-            else {
-              listOfWinners.add(i);
-            }
-          }
-        }
     }
 
     return listOfWinners;
