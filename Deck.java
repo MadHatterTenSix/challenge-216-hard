@@ -11,8 +11,8 @@ import java.util.Random;
 
 public final class Deck {
 
-  private Random random;
   private ArrayList<Card> deck;
+  private Random random;
 
   public Deck() {
     deck   = new ArrayList<>();
@@ -38,15 +38,12 @@ public final class Deck {
   public void burnTopCard()
     { drawCard(); }
 
-  public int numberOfCardsLeft()
-    { return deck.size(); }
-
   public void initializeDeck() {
     deck.clear();
-    for (int i = 1; i <= 4; i++) {    /* suits */
-      for (int j = 2; j <= 14; j++) {
+    for (int suit = 1; suit <= 4; suit++) {
+      for (int val = 2; val <= 14; val++) {
         Card card;
-        card = new Card(j, i);
+        card = new Card(val, suit);
         addCard(card);
       }
     }
