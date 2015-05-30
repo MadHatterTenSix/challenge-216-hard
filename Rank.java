@@ -46,17 +46,14 @@ import java.util.Collections;
 
 public class Rank {
 
-  int degree;
+  private int degree;
   private ArrayList<Card> cards;
-  private ArrayList<Card> highestCards;
 
   public Rank(ArrayList<Card> communityCards, ArrayList<Card> playersCards) {
-
-    degree = -1;
+    degree = 9;
     cards = new ArrayList<>();
-    highestCards = new ArrayList<>();
 
-    /* Merge all cards into one list. */
+    /* Join all cards together. */
     for (Card card : communityCards) {
       cards.add(card);
     }
@@ -81,25 +78,12 @@ public class Rank {
       /* Do nothing. Everything gets set during the checks.*/
     }
 
-    Collections.sort(cards, Card.CardValueComparator);
-
-  }
-
-  public static Card getHighestCard(ArrayList<Card> listOfCards) {
-    ArrayList<Card> tmpCards = Card.getCopyOfCards(listOfCards);
-    Collections.sort(tmpCards, Card.CardValueComparator);
-    return tmpCards.get(0);
-  }
-
-  /* Return list of cards matching specified value. */
-  public static ArrayList<Card> getCardsByValue(ArrayList<Card> listOfCards, int value) {
-    ArrayList<Card> tmpCards = new ArrayList<>();
-    for (Card card : listOfCards) {
-      if (card.getValue() == value) {
-        tmpCards.add(card);
-      }
+    /* Preserve order if isFullHouse() is true. Otherwise sort
+       using descending order.*/
+    if (degree != 3) {
+      Collections.sort(cards, Card.CardValueComparator);
     }
-    return tmpCards;
+
   }
 
   /* Return list of cards matching specified suit. */
@@ -107,6 +91,17 @@ public class Rank {
     ArrayList<Card> tmpCards = new ArrayList<>();
     for (Card card : listOfCards) {
       if (card.getSuit() == suit) {
+        tmpCards.add(card);
+      }
+    }
+    return tmpCards;
+  }
+
+  /* Return list of cards matching specified value. */
+  public static ArrayList<Card> getCardsByValue(ArrayList<Card> listOfCards, int value) {
+    ArrayList<Card> tmpCards = new ArrayList<>();
+    for (Card card : listOfCards) {
+      if (card.getValue() == value) {
         tmpCards.add(card);
       }
     }
@@ -138,15 +133,32 @@ public class Rank {
   public ArrayList<Card> getCards()
     { return cards; }
 
-  public ArrayList<Card> getHighestCards()
-    { return highestCards; }
-
-  public int getSumOfCards() {
-    int sum = 0;
-    for (Card card : cards) {
-      sum += card.getValue();
+  public static Card getHighestCard(ArrayList<Card> cards) {
+    Card highestCard;
+    Card tmpCard;
+    Collections.sort(cards, Card.CardValueComparator);
+    highestCard = cards.get(0);
+    for (int i = 1; i < cards.size(); i++) {
+      tmpCard = cards.get(i);
+      if (tmpCard.getValue() > highestCard.getValue()) {
+        highestCard = tmpCard;
+      }
     }
-    return sum;
+    return highestCard;
+  }
+
+  public static Card getLowestCard(ArrayList<Card> cards) {
+    Card lowestCard;
+    Card tmpCard;
+    Collections.sort(cards, Card.CardValueComparator);
+    lowestCard = cards.get(0);
+    for (int i = 1; i < cards.size(); i++) {
+      tmpCard = cards.get(i);
+      if (tmpCard.getValue() < lowestCard.getValue()) {
+        lowestCard = tmpCard;
+      }
+    }
+    return lowestCard;
   }
 
   @Override
@@ -177,7 +189,7 @@ public class Rank {
     return s;
   }
 
-  public String toMethodString() {
+  public String getDegreeString() {
     String s;
     switch (degree) {
       case 0: s = "Royal Flush"; break;
@@ -206,10 +218,10 @@ public class Rank {
     /* Check each ace for matching King, Queen, Jack, and 10. */
     for (Card card : listOfAces) {
       tmpSuit = card.getSuit();
-      if (isCardFound(listOfCards, new Card(13, tmpSuit))
-              && isCardFound(listOfCards, new Card(12, tmpSuit))
-              && isCardFound(listOfCards, new Card(11, tmpSuit))
-              && isCardFound(listOfCards, new Card(10, tmpSuit))) {
+      if (isCardFound(listOfCards, new Card(13, tmpSuit))           /* King  of same suit */
+              && isCardFound(listOfCards, new Card(12, tmpSuit))    /* Queen of same suit */
+              && isCardFound(listOfCards, new Card(11, tmpSuit))    /* Jack  of same suit */
+              && isCardFound(listOfCards, new Card(10, tmpSuit))) { /* Ten   of same suit */
         /* Remove irrelevant cards from original list. */
         listOfCards.clear();
         for (int i = 14; i >= 10; i--) {
@@ -217,8 +229,6 @@ public class Rank {
         }
 
         degree = 0;
-        highestCards.clear();
-        highestCards.add(listOfCards.get(0));
 
         return true;
       }
@@ -242,8 +252,6 @@ public class Rank {
         }
 
         degree = 1;
-        highestCards.clear();
-        highestCards.add(listOfCards.get(0));
 
         return true;
       }
@@ -266,14 +274,11 @@ public class Rank {
       if (tmpCards.size() >= 4) {
         /* Remove irrelevant cards from original list. */
         listOfCards.clear();
-        Collections.sort(tmpCards, Card.CardValueComparator);
         for (int j = 0; j < 4; j++) {
           listOfCards.add(tmpCards.get(j));
         }
 
         degree = 2;
-        highestCards.clear();
-        highestCards.add(listOfCards.get(0));
 
         return true;
       }
@@ -317,9 +322,6 @@ public class Rank {
         }
 
         degree = 3;
-        highestCards.clear();
-        highestCards.add(threeOfAKind.get(0));
-        highestCards.add(twoOfAKind.get(0));
 
         return true;
       }
@@ -347,8 +349,6 @@ public class Rank {
         }
 
         degree = 4;
-        highestCards = Card.getCopyOfCards(listOfCards);
-        Collections.sort(highestCards, Card.CardValueComparator);
 
         return true;
       }
@@ -372,26 +372,45 @@ public class Rank {
 
     counter = 0;
     Collections.sort(tmpCards, Card.CardValueComparator);
-    for (int i = 0; i < tmpCards.size()-1; i++) {
-      if (tmpCards.get(i).getValue() == tmpCards.get(i+1).getValue()+1) {
-        counter++;
-        if (counter >= 4) {
-          /* Remove irrelevant cards from original list. */
-          listOfCards.clear();
-          for (int j = i+1; j > (i-4); j--) {
-            listOfCards.add(tmpCards.get(j));
-          }
-          Collections.sort(listOfCards, Card.CardValueComparator);
-
-          degree = 5;
-          highestCards.clear();
-          highestCards.add(listOfCards.get(0));
-
-          return true;
-        }
+    /* Check for when Ace is considered as 1 for 1-5 straight. */
+    if (isValueFound(tmpCards, 14)
+        && isValueFound(tmpCards, 2)
+        && isValueFound(tmpCards, 3)
+        && isValueFound(tmpCards, 4)
+        && isValueFound(tmpCards, 5)
+        && !(isValueFound(tmpCards, 13)
+        && isValueFound(tmpCards, 12)
+        && isValueFound(tmpCards, 11)
+        && isValueFound(tmpCards, 10))) {
+      listOfCards.clear();
+      listOfCards.add(tmpCards.get(0));
+      for (int i = tmpCards.size()-1; i >= tmpCards.size()-4; i--) {
+        listOfCards.add(tmpCards.get(i));
       }
-      else {
-        counter = 0;
+      degree = 5;
+      return true;
+    }
+    /* Check for regular straight. */
+    else {
+      for (int i = 0; i < tmpCards.size()-1; i++) {
+        if (tmpCards.get(i).getValue() == tmpCards.get(i+1).getValue()+1) {
+          counter++;
+          if (counter >= 4) {
+            /* Remove irrelevant cards from original list. */
+            listOfCards.clear();
+            for (int j = i+1; j > (i-4); j--) {
+              listOfCards.add(tmpCards.get(j));
+            }
+            Collections.sort(listOfCards, Card.CardValueComparator);
+
+            degree = 5;
+
+            return true;
+          }
+        }
+        else {
+          counter = 0;
+        }
       }
     }
 
@@ -404,7 +423,7 @@ public class Rank {
 
     Collections.sort(listOfCards, Card.CardValueComparator);
 
-    /* Check each card for total of three matching cards. */
+    /* Check each card for total of four matching cards. */
     for (int i = 0; i < listOfCards.size(); i++) {
       tmpCards = Card.getCopyOfCards(listOfCards);
       tmpValue = listOfCards.get(i).getValue();
@@ -412,14 +431,11 @@ public class Rank {
       if (tmpCards.size() >= 3) {
         /* Remove irrelevant cards from original list. */
         listOfCards.clear();
-        Collections.sort(tmpCards, Card.CardValueComparator);
         for (int j = 0; j < 3; j++) {
           listOfCards.add(tmpCards.get(j));
         }
 
         degree = 6;
-        highestCards.clear();
-        highestCards.add(listOfCards.get(0));
 
         return true;
       }
@@ -466,8 +482,6 @@ public class Rank {
         }
 
         degree = 7;
-        highestCards.clear();
-        highestCards.add(listOfCards.get(0));
 
         return true;
       }
@@ -482,7 +496,7 @@ public class Rank {
 
     Collections.sort(listOfCards, Card.CardValueComparator);
 
-    /* Check each card for total of three matching cards. */
+    /* Check each card for total of four matching cards. */
     for (int i = 0; i < listOfCards.size(); i++) {
       tmpCards = Card.getCopyOfCards(listOfCards);
       tmpValue = listOfCards.get(i).getValue();
@@ -490,14 +504,11 @@ public class Rank {
       if (tmpCards.size() >= 2) {
         /* Remove irrelevant cards from original list. */
         listOfCards.clear();
-        Collections.sort(tmpCards, Card.CardValueComparator);
         for (int j = 0; j < 2; j++) {
           listOfCards.add(tmpCards.get(j));
         }
 
         degree = 8;
-        highestCards.clear();
-        highestCards.add(listOfCards.get(0));
 
         return true;
       }
@@ -507,23 +518,12 @@ public class Rank {
   }
 
   private boolean isHighCard(ArrayList<Card> listOfCards) {
-    Card highCard;
     Card tmpCard;
     Collections.sort(listOfCards, Card.CardValueComparator);
-    highCard = listOfCards.get(0);
-    for (int i = 1; i < listOfCards.size(); i++) {
-      tmpCard = listOfCards.get(i);
-      if (tmpCard.getValue() > highCard.getValue()) {
-        highCard = tmpCard;
-      }
-    }
+    tmpCard = listOfCards.get(0);
     listOfCards.clear();
-    listOfCards.add(highCard);
-
+    listOfCards.add(tmpCard);
     degree = 9;
-    highestCards.clear();
-    highestCards.add(listOfCards.get(0));
-
     return true;
   }
 
