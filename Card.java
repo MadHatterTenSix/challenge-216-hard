@@ -89,8 +89,8 @@ public final class Card {
   /* Return copy of specified card array list. */
   public static ArrayList<Card> getCopyOfCards(ArrayList<Card> source) {
     ArrayList<Card> destination = new ArrayList<>();
-    for (int i = 0; i < source.size(); i++) {
-      destination.add(source.get(i));
+    for (Card card : source) {
+      destination.add(card);
     }
     return destination;
   }
