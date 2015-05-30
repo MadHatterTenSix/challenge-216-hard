@@ -10,8 +10,7 @@ import java.util.ArrayList;
 public final class Player {
 
   public static enum Type {
-    CPU,
-    HUMAN
+    CPU, HUMAN
   }
 
   private boolean hasFolded;
